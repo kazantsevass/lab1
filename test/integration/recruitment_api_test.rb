@@ -30,15 +30,15 @@ class RecruitmentApiTest < ActionDispatch::IntegrationTest
   test "public collections use filters, stable pages and explicit projections" do
     get "/v1/companies", params: { location: "London", name: "First" }
     assert_response :ok
-    assert_equal [{ "name" => "First", "location" => "London" }], json.fetch("companies")
+    assert_equal [ { "name" => "First", "location" => "London" } ], json.fetch("companies")
     get "/v1/companies?limit=1&offset=1"
-    assert_equal ["Second"], json.fetch("companies").pluck("name")
+    assert_equal [ "Second" ], json.fetch("companies").pluck("name")
     get "/v1/jobs?place=Remote&name=Rails"
-    assert_equal [{ "name" => "Rails", "place" => "Remote", "company_id" => @company.id }], json.fetch("jobs")
+    assert_equal [ { "name" => "Rails", "place" => "Remote", "company_id" => @company.id } ], json.fetch("jobs")
     get "/v1/geeks?name=Mike&stack=Ruby"
-    assert_equal ["Mike"], json.fetch("geeks").pluck("name")
+    assert_equal [ "Mike" ], json.fetch("geeks").pluck("name")
     get "/v1/applies?read=false&invited=false", headers: bearer(@company)
-    assert_equal [false], json.fetch("applies").pluck("invited")
+    assert_equal [ false ], json.fetch("applies").pluck("invited")
     get "/v1/companies/#{@company.id}"
     assert_equal %w[created_at id location name updated_at], json.keys.sort
   end
@@ -50,11 +50,11 @@ class RecruitmentApiTest < ActionDispatch::IntegrationTest
     get "/v1/companies/#{@company.id}/jobs/#{@job.id}"
     assert_equal "Rails", json.fetch("name")
     get "/v1/companies/#{@company.id}/jobs/#{@job.id}/applies", headers: bearer(@company)
-    assert_equal [@geek.id], json.fetch("applies").pluck("geek_id")
+    assert_equal [ @geek.id ], json.fetch("applies").pluck("geek_id")
     get "/v1/companies/#{@company.id}/geeks", headers: bearer(@company)
-    assert_equal ["Mike"], json.fetch("geeks").pluck("name")
+    assert_equal [ "Mike" ], json.fetch("geeks").pluck("name")
     get "/v1/jobs/#{@job.id}/geeks", headers: bearer(@company)
-    assert_equal ["Mike"], json.fetch("geeks").pluck("name")
+    assert_equal [ "Mike" ], json.fetch("geeks").pluck("name")
     get "/v1/geeks/#{@geek.id}/applies?read=true", headers: bearer(@company)
     assert_empty json.fetch("applies")
     get "/v1/companies/#{@other.id}/jobs/#{@job.id}/applies", headers: bearer(@company)
@@ -88,7 +88,7 @@ class RecruitmentApiTest < ActionDispatch::IntegrationTest
     put "/v1/applies/#{id}/invite", headers: bearer(@company)
     assert_equal true, json.fetch("invited")
     get "/v1/geeks/#{geek_id}/applies?read=true&invited=true", headers: bearer(@company)
-    assert_equal [@job.id], json.fetch("applies").pluck("job_id")
+    assert_equal [ @job.id ], json.fetch("applies").pluck("job_id")
     as_admin do |headers|
       delete "/v1/geeks/#{geek_id}", headers: headers
       assert_response :conflict
