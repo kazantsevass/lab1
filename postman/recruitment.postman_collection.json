@@ -1,0 +1,386 @@
+{
+  "info": {
+    "name": "Rails Recruitment API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "admin_token",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Register employer",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/v1/companies",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\":\"Postman QA\",\"location\":\"London\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP and JSON contract', function () {",
+              "  pm.response.to.have.status(201);",
+              "  pm.response.to.be.json;",
+              "  pm.variables.set('employer', pm.response.headers.get('X-Access-Token'));",
+              "  pm.variables.set('company', pm.response.json().id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Filter companies",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/v1/companies?name=Postman%20QA&location=London",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP and JSON contract', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.response.to.be.json;",
+              "  pm.expect(pm.response.json().companies).to.deep.include({name:'Postman QA',location:'London'});",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reject invalid job",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/v1/jobs",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{employer}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\":\"Ruby\",\"company_id\":\"{{company}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP and JSON contract', function () {",
+              "  pm.response.to.have.status(422);",
+              "  pm.response.to.be.json;",
+              "  pm.expect(pm.response.json().errors).to.have.property('place');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Publish job",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/v1/jobs",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{employer}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\":\"Ruby\",\"place\":\"Remote\",\"company_id\":\"{{company}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP and JSON contract', function () {",
+              "  pm.response.to.have.status(201);",
+              "  pm.response.to.be.json;",
+              "  pm.variables.set('job', pm.response.headers.get('Location').split('/').pop());",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Nested jobs",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/v1/companies/{{company}}/jobs?place=Remote",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP and JSON contract', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.response.to.be.json;",
+              "  pm.expect(pm.response.json().jobs[0].name).to.equal('Ruby');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Update job",
+      "request": {
+        "method": "PATCH",
+        "url": "{{base_url}}/v1/jobs/{{job}}",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{employer}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\":\"Rails\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP and JSON contract', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.response.to.be.json;",
+              "  pm.expect(pm.response.json().name).to.equal('Rails');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Register applicant",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/v1/geeks",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\":\"Postman QA\",\"stack\":\"Ruby\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP and JSON contract', function () {",
+              "  pm.response.to.have.status(201);",
+              "  pm.response.to.be.json;",
+              "  pm.variables.set('applicant',pm.response.headers.get('X-Access-Token'));",
+              "  pm.variables.set('geek',pm.response.json().id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Submit application",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/v1/applies",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{applicant}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"geek_id\":\"{{geek}}\",\"job_id\":\"{{job}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP and JSON contract', function () {",
+              "  pm.response.to.have.status(201);",
+              "  pm.response.to.be.json;",
+              "  pm.variables.set('application',pm.response.json().id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mark read",
+      "request": {
+        "method": "PUT",
+        "url": "{{base_url}}/v1/applies/{{application}}/read",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{employer}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP and JSON contract', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.response.to.be.json;",
+              "  pm.expect(pm.response.json().read).to.equal(true);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Filtered applications",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/v1/geeks/{{geek}}/applies?read=true&invited=false",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{applicant}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP and JSON contract', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.response.to.be.json;",
+              "  pm.expect(pm.response.json().applies).to.have.length(1);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Delete company",
+      "request": {
+        "method": "PUT",
+        "url": "{{base_url}}/v1/companies/{{company}}/mark_deleted",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP and JSON contract', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.response.to.be.json;",
+              "  pm.expect(pm.response.json().status).to.equal('success');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Repeat delete",
+      "request": {
+        "method": "DELETE",
+        "url": "{{base_url}}/v1/companies/{{company}}",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP and JSON contract', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.response.to.be.json;",
+              "  pm.expect(pm.response.json().deleted_already).to.equal('not_modified');",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
